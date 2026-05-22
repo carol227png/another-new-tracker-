@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Tracker de Treino Perfeito</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --border: #cbd5e1;
+            --bg: #ffffff;
+            --selected-bg: #eff6ff;
+            --selected-border: #3b82f6;
+            --text: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .row-two-columns {
+            display: flex;
+            gap: 15px;
+        }
+
+        .row-two-columns .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+
+        label span {
+            color: #94a3b8;
+            font-weight: normal;
+        }
+
+        input[type="date"],
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            color: var(--text);
+            outline: none;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        /* Grid de Botões (Grupos Musculares) */
+        .badge-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .badge-btn {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .badge-btn.active {
+            background-color: var(--selected-bg);
+            border-color: var(--selected-border);
+            color: #1d4ed8;
+            font-weight: 500;
+        }
+
+        .selected-text {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Seção Exercícios por Série */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 25px 0 12px 0;
+            color: #0f172a;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+
+        .exercise-block {
+            background: #fdfdfd;
+            border: 1px dashed #cbd5e1;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .series-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .series-column {
+            flex: 1;
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .series-column span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .series-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .series-inputs input {
+            padding: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .add-exercise-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+
+        .add-btn {
+            background: #0f172a;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .add-btn:hover {
+            background: #334155;
+        }
+
+        /* Lista temporária de exercícios adicionados */
+        .temp-exercise-list {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+        }
+        .temp-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+        .temp-item:last-child { border-bottom: none; }
+        
+        .temp-series-line {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Botão Salvar Principal */
+        .save-workout-btn {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #0f172a;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            color: #0f172a;
+        }
+
+        .save-workout-btn:hover {
+            background: #f8fafc;
+        }
+
+        /* Estilo do Histórico */
+        .history-section {
+            width: 100%;
+            max-width: 550px;
+            margin-top: 30px;
+        }
+        .history-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border-left: 4px solid #3b82f6;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .history-muscles {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .history-exercises-list {
+            padding-left: 0;
+            margin: 5px 0;
+            font-size: 0.95rem;
+            list-style: none;
+        }
+        .history-exercise-item {
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .history-exercise-item:last-child { border-bottom: none; }
+        
+        .delete-history-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-group">
+            <label for="date">Data</label>
+            <input type="date" id="date">
+        </div>
+
+        <div class="form-group">
+            <label>Grupo muscular <span>(selecione um ou mais)</span></label>
+            <div class="badge-grid" id="muscle-grid">
+                <button class="badge-btn" data-muscle="Peito">🏋️ Peito</button>
+                <button class="badge-btn" data-muscle="Costas">🔙 Costas</button>
+                <button class="badge-btn" data-muscle="Quadríceps">🍗 Quadríceps</button>
+                <button class="badge-btn" data-muscle="Glúteos">🍑 Glúteos</button>
+                <button class="badge-btn" data-muscle="Ombros">🎯 Ombros</button>
+                <button class="badge-btn" data-muscle="Bíceps">💪 Bíceps</button>
+                <button class="badge-btn" data-muscle="Tríceps">💪 Tríceps</button>
+                <button class="badge-btn" data-muscle="Abdômen">⚡ Abdômen</button>
+                <button class="badge-btn" data-muscle="Antebraço">🦾 Antebraço</button>
+                <button class="badge-btn" data-muscle="Panturrilha">Grad Panturrilha</button>
+                <button class="badge-btn" data-muscle="Posterior">🔥 Posterior</button>
+                <button class="badge-btn" data-muscle="Cardio">🏃 Cardio</button>
+            </div>
+            <div class="selected-text" id="selected-muscles-text">Selecionados: Nenhum</div>
+        </div>
+
+        <div class="row-two-columns form-group">
+            <div class="form-group">
+                <label for="duration">🏃 Duração do Cardio (min)</label>
+                <input type="number" id="duration" placeholder="ex: 20">
+            </div>
+            <div class="form-group">
+                <label>🌟 Rendimento do Treino</label>
+                <div class="badge-grid" id="feeling-grid">
+                    <button class="badge-btn feeling-btn" data-feeling="Fraco">🥳 Fraco</button>
+                    <button class="badge-btn feeling-btn" data-feeling="Ok">😐 Ok</button>
+                    <button class="badge-btn feeling-btn" data-feeling="Bom">💪 Bom</button>
+                    <button class="badge-btn feeling-btn" data-feeling="Ótimo">🔥 Ótimo</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">🏋️‍♂️ Exercícios por Série</div>
+
+        <div class="exercise-block">
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 0.85rem;">Nome do Exercício</label>
+                <input type="text" id="exercise-name" placeholder="ex: Agachamento Búlgaro">
+            </div>
+            
+            <div class="series-container">
+                <div class="series-column">
+                    <span>Série 1</span>
+                    <div class="series-inputs">
+                        <input type="number" id="w1" placeholder="Carga kg">
+                        <input type="number" id="r1" placeholder="Reps">
+                    </div>
+                </div>
+                <div class="series-column">
+                    <span>Série 2</span>
+                    <div class="series-inputs">
+                        <input type="number" id="w2" placeholder="Carga kg">
+                        <input type="number" id="r2" placeholder="Reps">
+                    </div>
+                </div>
+                <div class="series-column">
+                    <span>Série 3</span>
+                    <div class="series-inputs">
+                        <input type="number" id="w3" placeholder="Carga kg">
+                        <input type="number" id="r3" placeholder="Reps">
+                    </div>
+                </div>
+            </div>
+
+            <div class="add-exercise-row">
+                <button class="add-btn" id="add-exercise-btn" type="button">➕ Adicionar Exercício</button>
+            </div>
+        </div>
+
+        <div id="temp-list-container"></div>
+
+        <div class="form-group">
+            <label for="notes">📝 Observações (opcional)</label>
+            <textarea id="notes" rows="3" placeholder="Anotações, PR novo, dores..."></textarea>
+        </div>
+
+        <button class="save-workout-btn" id="save-workout-btn">
+            💾 Salvar treino
+        </button>
+    </div>
+
+    <div class="history-section">
+        <h2 style="font-size: 1.2rem; color: #1e293b;">Histórico de Treinos</h2>
+        <div id="history-container"></div>
+    </div>
+
+    <script>
+        // Configura data padrão automática para o dia de hoje
+        const hoje = new Date();
+        document.getElementById('date').value = hoje.toISOString().split('T')[0];
+
+        let selecionadosMusculos = [];
+        let selecionadoFeeling = "";
+        let listaExerciciosAtual = [];
+
+        // Lógica dos Grupos Musculares (Múltipla escolha)
+        document.querySelectorAll('#muscle-grid .badge-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const muscle = btn.getAttribute('data-muscle');
+                if (selecionadosMusculos.includes(muscle)) {
+                    selecionadosMusculos = selecionadosMusculos.filter(m => m !== muscle);
+                    btn.classList.remove('active');
+                } else {
+                    selecionadosMusculos.push(muscle);
+                    btn.classList.add('active');
+                }
+                document.getElementById('selected-muscles-text').innerText = 
+                    "Selecionados: " + (selecionadosMusculos.length > 0 ? selecionadosMusculos.join(', ') : "Nenhum");
+            });
+        });
+
+        // Lógica do Rendimento (Escolha única)
+        document.querySelectorAll('#feeling-grid .feeling-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#feeling-grid .feeling-btn').forEach(b => b.classList.remove('active'));
+                selecionadoFeeling = btn.getAttribute('data-feeling');
+                btn.classList.add('active');
+            });
+        });
+
+        // Adicionar Exercício por Série à lista temporária
+        document.getElementById('add-exercise-btn').addEventListener('click', () => {
+            const name = document.getElementById('exercise-name').value.trim();
+            
+            if (!name) {
+                alert("Por favor, digite o nome do exercício.");
+                return;
+            }
+
+            // Coleta dados das 3 séries
+            const seriesDados = [];
+            for (let i = 1; i <= 3; i++) {
+                const weight = document.getElementById(`w${i}`).value;
+                const reps = document.getElementById(`r${i}`).value;
+                if (weight || reps) {
+                    seriesDados.push({
+                        serie: i,
+                        weight: weight || "0",
+                        reps: reps || "0"
+                    });
+                }
+            }
+
+            if (seriesDados.length === 0) {
+                alert("Preencha a carga e repetições de pelo menos uma série.");
+                return;
+            }
+
+            listaExerciciosAtual.push({ name, series: seriesDados });
+            atualizarListaTemporaria();
+
+            // Limpa o bloco de exercícios para o próximo
+            document.getElementById('exercise-name').value = '';
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`w${i}`).value = '';
+                document.getElementById(`r${i}`).value = '';
+            }
+            document.getElementById('exercise-name').focus();
+        });
+
+        function atualizarListaTemporaria() {
+            const container = document.getElementById('temp-list-container');
+            if (listaExerciciosAtual.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="temp-exercise-list">';
+            listaExerciciosAtual.forEach((ex, index) => {
+                let seriesText = ex.series.map(s => `S${s.serie}: ${s.weight}kg (${s.reps} reps)`).join(' | ');
+                html += `
+                    <div class="temp-item">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${ex.name}</strong>
+                            <span style="color:#ef4444; cursor:pointer; font-size:0.85rem;" onclick="removerExAtual(${index})">remover</span>
+                        </div>
+                        <div class="temp-series-line">${seriesText}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        window.removerExAtual = function(index) {
+            listaExerciciosAtual.splice(index, 1);
+            atualizarListaTemporaria();
+        }
+
+        // Salvar o Treino Inteiro
+        document.getElementById('save-workout-btn').addEventListener('click', () => {
+            const dateInput = document.getElementById('date').value;
+            const duration = document.getElementById('duration').value;
+            const notes = document.getElementById('notes').value;
+
+            if (selecionadosMusculos.length === 0) {
+                alert("Selecione pelo menos um grupo muscular.");
+                return;
+            }
+            if (listaExerciciosAtual.length === 0) {
+                alert("Adicione pelo menos um exercício antes de salvar.");
+                return;
+            }
+
+            const dataFormatada = dateInput.split('-').reverse().join('/');
+
+            const novoTreino = {
+                id: Date.now(),
+                data: dataFormatada,
+                musculos: selecionadosMusculos,
+                duracao: duration ? `${duration} min de cardio` : "Sem cardio",
+                feeling: selecionadoFeeling || "Não avaliado",
+                exercicios: listaExerciciosAtual,
+                observacoes: notes
+            };
+
+            let historico = JSON.parse(localStorage.getItem('historicoSeriesTreino')) || [];
+            historico.unshift(novoTreino);
+            localStorage.setItem('historicoSeriesTreino', JSON.stringify(historico));
+
+            // Reset total do formulário
+            selecionadosMusculos = [];
+            selecionadoFeeling = "";
+            listaExerciciosAtual = [];
+            document.querySelectorAll('.badge-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('selected-muscles-text').innerText = "Selecionados: Nenhum";
+            document.getElementById('duration').value = '';
+            document.getElementById('notes').value = '';
+            atualizarListaTemporaria();
+            
+            render
