@@ -1,330 +1,175 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meu Tracker de Treino Perfeito</title>
-    <style>
-        :root {
-            --primary: #1e293b;
-            --border: #cbd5e1;
-            --bg: #ffffff;
-            --text: #334155;
-        }
+// Salvar o Treino Inteiro
+document.getElementById('save-workout-btn').addEventListener('click', () => {
+const dateInput = document.getElementById('date').value;
+const duration = document.getElementById('duration').value;
+const notes = document.getElementById('notes').value;
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f8fafc;
-            color: var(--text);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+```
+if (selecionadosMusculos.length === 0) {
+    alert("Selecione pelo menos um grupo muscular.");
+    return;
+}
 
-        .container {
-            width: 100%;
-            max-width: 550px;
-            background: var(--bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            box-sizing: border-box;
-        }
+if (listaExerciciosAtual.length === 0) {
+    alert("Adicione pelo menos um exercício antes de salvar.");
+    return;
+}
 
-        .form-group {
-            margin-bottom: 18px;
-        }
+const dataFormatada = dateInput.split('-').reverse().join('/');
 
-        .row-two-columns {
-            display: flex;
-            gap: 15px;
-        }
+const novoTreino = {
+    id: Date.now(),
+    data: dataFormatada,
+    musculos: selecionadosMusculos,
+    duracao: duration ? `${duration} min de cardio` : "Sem cardio",
+    feeling: selecionadoFeeling || "Não avaliado",
+    exercicios: listaExerciciosAtual,
+    observacoes: notes
+};
 
-        .row-two-columns .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
+let historico = JSON.parse(localStorage.getItem('historicoSeriesTreino')) || [];
 
-        label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #475569;
-        }
+historico.unshift(novoTreino);
 
-        label span {
-            color: #94a3b8;
-            font-weight: normal;
-        }
+localStorage.setItem(
+    'historicoSeriesTreino',
+    JSON.stringify(historico)
+);
 
-        input[type="date"],
-        input[type="text"],
-        input[type="number"],
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            color: var(--text);
-            outline: none;
-        }
+// RESET DO FORMULÁRIO
+selecionadosMusculos = [];
+selecionadoFeeling = "";
+listaExerciciosAtual = [];
 
-        /* Grid de Botões */
-        .badge-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
+document.querySelectorAll('.badge-btn')
+    .forEach(b => b.classList.remove('active'));
 
-        .badge-btn {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            padding: 10px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            color: var(--text);
-            outline: none;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-        }
+document.getElementById('selected-muscles-text').innerText =
+    "Selecionados: Nenhum";
 
-        /* Estado ativo forçado */
-        .badge-btn.active {
-            background-color: #eff6ff !important;
-            border-color: #3b82f6 !important;
-            color: #1d4ed8 !important;
-            font-weight: bold !important;
-        }
+document.getElementById('duration').value = '';
+document.getElementById('notes').value = '';
 
-        .selected-text {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-top: 4px;
-        }
+atualizarListaTemporaria();
 
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 25px 0 12px 0;
-            color: #0f172a;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 15px;
-        }
+// limpa inputs de exercício
+document.getElementById('exercise-name').value = '';
 
-        .exercise-block {
-            background: #fdfdfd;
-            border: 1px dashed #cbd5e1;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
+for (let i = 1; i <= 3; i++) {
+    document.getElementById(`w${i}`).value = '';
+    document.getElementById(`r${i}`).value = '';
+}
 
-        .series-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
+renderHistorico();
+```
 
-        .series-column {
-            flex: 1;
-            background: #f1f5f9;
-            padding: 8px;
-            border-radius: 6px;
-            text-align: center;
-        }
+});
 
-        .series-column span {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #475569;
-            display: block;
-            margin-bottom: 4px;
-        }
+// Renderiza histórico
+function renderHistorico() {
+const container = document.getElementById('history-container');
 
-        .series-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+```
+let historico = JSON.parse(
+    localStorage.getItem('historicoSeriesTreino')
+) || [];
 
-        .series-inputs input {
-            padding: 6px;
-            font-size: 0.85rem;
-            text-align: center;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            width: 100%;
-            box-sizing: border-box;
-        }
+if (historico.length === 0) {
+    container.innerHTML =
+        '<p style="color:#64748b;">Nenhum treino salvo ainda.</p>';
+    return;
+}
 
-        .add-exercise-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 12px;
-        }
+let html = '';
 
-        .add-btn {
-            background: #0f172a;
-            border: none;
-            border-radius: 6px;
-            padding: 12px 18px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: white;
-            touch-action: manipulation;
-        }
+historico.forEach(treino => {
 
-        .temp-exercise-list {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-        }
-        .temp-item {
-            padding: 8px 0;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 0.95rem;
-        }
-        .temp-item:last-child { border-bottom: none; }
-        .temp-series-line { font-size: 0.85rem; color: #64748b; margin-top: 2px; }
+    let exerciciosHtml = '';
 
-        .save-workout-btn {
-            width: 100%;
-            background: #0f172a;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: white;
-            margin-top: 20px;
-            touch-action: manipulation;
-        }
+    treino.exercicios.forEach(ex => {
 
-        .history-section { width: 100%; max-width: 550px; margin-top: 30px; }
-        .history-card { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 4px solid #3b82f6; }
-        .history-header { display: flex; justify-content: space-between; font-size: 0.9rem; color: #64748b; margin-bottom: 8px; }
-        .history-muscles { font-weight: 600; color: #1e293b; margin-bottom: 10px; }
-        .history-exercises-list { padding-left: 0; margin: 5px 0; font-size: 0.95rem; list-style: none; }
-        .history-exercise-item { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #e2e8f0; }
-        .history-exercise-item:last-child { border-bottom: none; }
-        .delete-history-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; padding: 0; margin-top: 10px; }
-    </style>
-</head>
-<body>
+        const series = ex.series
+            .map(s =>
+                `S${s.serie}: ${s.weight}kg (${s.reps} reps)`
+            )
+            .join(' | ');
 
-    <div class="container">
-        <div class="form-group">
-            <label for="date">Data</label>
-            <input type="date" id="date">
-        </div>
-
-        <div class="form-group">
-            <label>Grupo muscular <span>(selecione um ou mais)</span></label>
-            <div class="badge-grid" id="muscle-grid">
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Peito')">Peito</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Costas')">Costas</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Quadríceps')">Quadríceps</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Glúteos')">Glúteos</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Ombros')">Ombros</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Bíceps')">Bíceps</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Tríceps')">Tríceps</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Abdômen')">Abdômen</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Antebraço')">Antebraço</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Panturrilha')">Panturrilha</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Posterior')">Posterior</button>
-                <button type="button" class="badge-btn" onclick="toggleMuscle(this, 'Cardio')">Cardio</button>
-            </div>
-            <div class="selected-text" id="selected-muscles-text">Selecionados: Nenhum</div>
-        </div>
-
-        <div class="row-two-columns form-group">
-            <div class="form-group">
-                <label for="duration">Duração do Cardio (min)</label>
-                <input type="number" id="duration" placeholder="ex: 20">
-            </div>
-            <div class="form-group">
-                <label>Rendimento do Treino</label>
-                <div class="badge-grid" id="feeling-grid">
-                    <button type="button" class="badge-btn feeling-btn" onclick="selectFeeling(this, 'Fraco')">Fraco</button>
-                    <button type="button" class="badge-btn feeling-btn" onclick="selectFeeling(this, 'Ok')">Ok</button>
-                    <button type="button" class="badge-btn feeling-btn" onclick="selectFeeling(this, 'Bom')">Bom</button>
-                    <button type="button" class="badge-btn feeling-btn" onclick="selectFeeling(this, 'Ótimo')">Ótimo</button>
+        exerciciosHtml += `
+            <li class="history-exercise-item">
+                <strong>${ex.name}</strong>
+                <div class="temp-series-line">
+                    ${series}
                 </div>
-            </div>
-        </div>
+            </li>
+        `;
+    });
 
-        <div class="section-title">Exercícios por Série</div>
+    html += `
+        <div class="history-card">
 
-        <div class="exercise-block">
-            <div class="form-group" style="margin-bottom: 10px;">
-                <label style="font-size: 0.85rem;">Nome do Exercício</label>
-                <input type="text" id="exercise-name" placeholder="ex: Agachamento Búlgaro">
+            <div class="history-header">
+                <span>${treino.data}</span>
+                <span>${treino.feeling}</span>
             </div>
-            
-            <div class="series-container">
-                <div class="series-column">
-                    <span>Série 1</span>
-                    <div class="series-inputs">
-                        <input type="number" id="w1" placeholder="Carga kg">
-                        <input type="number" id="r1" placeholder="Reps">
-                    </div>
+
+            <div class="history-muscles">
+                ${treino.musculos.join(', ')}
+            </div>
+
+            <div style="margin-bottom:8px; color:#475569;">
+                ${treino.duracao}
+            </div>
+
+            <ul class="history-exercises-list">
+                ${exerciciosHtml}
+            </ul>
+
+            ${
+                treino.observacoes
+                ? `
+                <div style="margin-top:10px; color:#475569;">
+                    📝 ${treino.observacoes}
                 </div>
-                <div class="series-column">
-                    <span>Série 2</span>
-                    <div class="series-inputs">
-                        <input type="number" id="w2" placeholder="Carga kg">
-                        <input type="number" id="r2" placeholder="Reps">
-                    </div>
-                </div>
-                <div class="series-column">
-                    <span>Série 3</span>
-                    <div class="series-inputs">
-                        <input type="number" id="w3" placeholder="Carga kg">
-                        <input type="number" id="r3" placeholder="Reps">
-                    </div>
-                </div>
-            </div>
+                `
+                : ''
+            }
 
-            <div class="add-exercise-row">
-                <button class="add-btn" type="button" onclick="adicionarExercicioBotao()">➕ Adicionar Exercício</button>
-            </div>
+            <button
+                type="button"
+                class="delete-history-btn"
+                onclick="deletarTreino(${treino.id})"
+            >
+                🗑 Excluir
+            </button>
+
         </div>
+    `;
+});
 
-        <div id="temp-list-container"></div>
+container.innerHTML = html;
+```
 
-        <div class="form-group">
-            <label for="notes">Observações (opcional)</label>
-            <textarea id="notes" rows="3" placeholder="Anotações, PR novo, dores..."></textarea>
-        </div>
+}
 
-        <button class="save-workout-btn" type="button" onclick="salvarTreinoBotao()">
-            💾 Salvar treino
-        </button>
-    </div>
+// Deletar treino
+window.deletarTreino = function(id) {
 
-    <div class="history-section">
-        <h2 style="font-size: 1.2rem; color: #1e293b;">Histórico de Treinos</h2>
-        <div id="history-container"></div>
-    </div>
+```
+let historico = JSON.parse(
+    localStorage.getItem('historicoSeriesTreino')
+) || [];
 
-    <script>
-        // Configura data padrão automática para o dia de hoje
-        const hoje = new Date();
-        document.getElementById('date').value = hoje.toISOString().split('T')[0];
+historico = historico.filter(t => t.id !== id);
 
-        let selecionadosMusculos = [];
-        let selecionadoFeeling = "";
-        let listaExerciciosAtual = [];
+localStorage.setItem(
+    'historicoSeriesTreino',
+    JSON.stringify(historico)
+);
 
-        // Função
+renderHistorico();
+```
+
+};
+
+// inicializa histórico ao abrir
+renderHistorico();
